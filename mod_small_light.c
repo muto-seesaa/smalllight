@@ -240,11 +240,19 @@ static apr_status_t small_light_filter(ap_filter_t *f, apr_bucket_brigade *bb)
             // finally, output data process
             rv = ctx->output_data_func(f, bb, ctx, e);
             if ( rv != APR_SUCCESS ) {
-                 apr_brigade_cleanup(bb);
-                 f->r->status_line = "500 Internal Server Error";
-                 e = ap_bucket_error_create(HTTP_INTERNAL_SERVER_ERROR,
+                 if (f->r->status == HTTP_NOT_FOUND) {
+                     apr_brigade_cleanup(bb);
+                     f->r->status_line = "404 Not Found";
+                     e = ap_bucket_error_create(HTTP_NOT_FOUND,
                                             NULL, r->pool,
                                             f->c->bucket_alloc);
+                 } else {
+                     apr_brigade_cleanup(bb);
+                     f->r->status_line = "500 Internal Server Error";
+                     e = ap_bucket_error_create(HTTP_INTERNAL_SERVER_ERROR,
+                                            NULL, r->pool,
+                                            f->c->bucket_alloc);
+                 }
                  APR_BRIGADE_INSERT_TAIL(bb, e);
                  e = apr_bucket_eos_create(f->c->bucket_alloc);
                  APR_BRIGADE_INSERT_TAIL(bb, e);

@@ -288,7 +288,7 @@ apr_status_t small_light_filter_imlib2_receive_data(
         }
         if (rv != APR_SUCCESS) {
             ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "could not create temporary file. %s", lctx->filename);
-            r->status = HTTP_INTERNAL_SERVER_ERROR;
+            r->status = HTTP_NOT_FOUND;
             return APR_EGENERAL;
         }
     }
@@ -303,7 +303,7 @@ apr_status_t small_light_filter_imlib2_receive_data(
                 "an error occured while writing data to temporary file %zd", num_writes);
             apr_file_close(lctx->file);
             lctx->file = NULL;
-            r->status = HTTP_INTERNAL_SERVER_ERROR;
+            r->status = HTTP_NOT_FOUND;
             return APR_EGENERAL;
         }
     }
@@ -331,7 +331,7 @@ apr_status_t small_light_filter_imlib2_output_data(
     // check data received.
     if (lctx->file == NULL) {
         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "no data received");
-        r->status = HTTP_INTERNAL_SERVER_ERROR;
+        r->status = HTTP_NOT_FOUND;
         return APR_EGENERAL;
     }
 
@@ -354,7 +354,7 @@ apr_status_t small_light_filter_imlib2_output_data(
             image_org = imlib_load_image_immediately_without_cache(lctx->filename);
             if (image_org == NULL) {
                 ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "imlib_load_image failed. uri=%s", r->uri);
-                r->status = HTTP_INTERNAL_SERVER_ERROR;
+                r->status = HTTP_NOT_FOUND;
                 return APR_EGENERAL;
             }
         } else {
@@ -367,7 +367,7 @@ apr_status_t small_light_filter_imlib2_output_data(
         image_org = imlib_load_image_immediately_without_cache(lctx->filename);
         if (image_org == NULL) {
             ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "imlib_load_image failed. uri=%s", r->uri);
-            r->status = HTTP_INTERNAL_SERVER_ERROR;
+            r->status = HTTP_NOT_FOUND;
             return APR_EGENERAL;
         }
 #ifdef ENABLE_JPEG
@@ -390,7 +390,7 @@ apr_status_t small_light_filter_imlib2_output_data(
         rv = apr_mmap_create(&org_image_mmap, lctx->file, 0, lctx->image_len, APR_MMAP_READ, r->pool);
         if (rv != APR_SUCCESS) {
             ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "open mmap failed. uri=%s", r->uri);
-            r->status = HTTP_INTERNAL_SERVER_ERROR;
+            r->status = HTTP_NOT_FOUND;
             return rv;
         }
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "load exif");
@@ -411,7 +411,7 @@ apr_status_t small_light_filter_imlib2_output_data(
         rv = apr_mmap_create(&org_image_mmap, lctx->file, 0, lctx->image_len, APR_MMAP_READ, r->pool);
         if (rv != APR_SUCCESS) {
             ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "open mmap failed. uri=%s", r->uri);
-            r->status = HTTP_INTERNAL_SERVER_ERROR;
+            r->status = HTTP_NOT_FOUND;
             return rv;
         }
         apr_bucket *b = apr_bucket_pool_create(org_image_mmap->mm, lctx->image_len, r->pool, ctx->bb->bucket_alloc);
@@ -441,7 +441,7 @@ apr_status_t small_light_filter_imlib2_output_data(
     }
     if (image_dst == NULL) {
         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "imlib_create_cropped_scaled_image failed. uri=%s", r->uri);
-        r->status = HTTP_INTERNAL_SERVER_ERROR;
+        r->status = HTTP_NOT_FOUND;
         return APR_EGENERAL;
     }
 
@@ -454,7 +454,7 @@ apr_status_t small_light_filter_imlib2_output_data(
             imlib_free_image();
             ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
                 "imlib_create_image failed. uri=%s", r->uri);
-            r->status = HTTP_INTERNAL_SERVER_ERROR;
+            r->status = HTTP_NOT_FOUND;
             return APR_EGENERAL;
         }
         imlib_context_set_image(image_tmp);
@@ -528,7 +528,7 @@ apr_status_t small_light_filter_imlib2_output_data(
     }
     if (rv != APR_SUCCESS) {
         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "could not create temporary file.");
-        r->status = HTTP_INTERNAL_SERVER_ERROR;
+        r->status = HTTP_NOT_FOUND;
         return APR_EGENERAL;
     }
     Imlib_Load_Error err;
@@ -538,7 +538,7 @@ apr_status_t small_light_filter_imlib2_output_data(
     // check error.
     if (err != IMLIB_LOAD_ERROR_NONE) {
         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "imlib_save_error failed. uri=%s", r->uri);
-        r->status = HTTP_INTERNAL_SERVER_ERROR;
+        r->status = HTTP_NOT_FOUND;
         return APR_EGENERAL;
     }
 
@@ -555,7 +555,7 @@ apr_status_t small_light_filter_imlib2_output_data(
     }
     if (rv != APR_SUCCESS) {
         ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "open mmap failed. %s", r->uri);
-        r->status = HTTP_INTERNAL_SERVER_ERROR;
+        r->status = HTTP_NOT_FOUND;
         return APR_EGENERAL;
     }
     
